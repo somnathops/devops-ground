@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Birthday Reminder</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fff5f7;
+            color: #333;
+        }
+
+        header {
+            background: #e91e8c;
+            color: white;
+            padding: 16px 32px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 32px auto;
+            padding: 0 16px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+        }
+
+        .form-card h2 {
+            margin-bottom: 16px;
+            color: #e91e8c;
+            font-size: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #e91e8c;
+        }
+
+        button {
+            padding: 10px 24px;
+            background: #e91e8c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #c2185b;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            border-collapse: collapse;
+            overflow: hidden;
+        }
+
+        th {
+            background: #e91e8c;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #fff5f7;
+        }
+
+        .btn-delete {
+            background: #ff4d4d;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+
+        .btn-delete:hover {
+            background: #cc0000;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 32px;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>🎂 Birthday Reminder</header>
+
+    <div class="container">
+        <div class="form-card">
+            <h2>Add a Birthday</h2>
+            <input type="text" id="name" placeholder="Full Name" />
+            <input type="email" id="email" placeholder="Email Address" />
+            <input type="text" id="birthday" placeholder="Birthday (MM-DD) e.g. 03-29" />
+            <button onclick="addBirthday()">Add Birthday</button>
+        </div>
+
+        <table id="birthday-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Birthday</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="birthday-list"></tbody>
+        </table>
+
+        <p class="empty" id="empty-msg" style="display:none">
+            No birthdays added yet!
+        </p>
+    </div>
+
+    <script>
+        async function loadBirthdays() {
+            const res = await fetch('/birthdays');
+            const data = await res.json();
+            const tbody = document.getElementById('birthday-list');
+            const empty = document.getElementById('empty-msg');
+            const table = document.getElementById('birthday-table');
+
+            if (data.length === 0) {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            table.style.display = 'table';
+            empty.style.display = 'none';
+
+            tbody.innerHTML = data.map((p, index) => `
+        <tr>
+          <td>${p.name}</td>
+          <td>${p.email}</td>
+          <td>${p.birthday}</td>
+          <td><button class="btn-delete" onclick="deleteBirthday(${index})">Delete</button></td>
+        </tr>
+      `).join('');
+        }
+
+        async function addBirthday() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const birthday = document.getElementById('birthday').value.trim();
+
+            if (!name || !email || !birthday) {
+                alert('All fields are required');
+                return;
+            }
+
+            await fetch('/birthdays', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, birthday })
+            });
+
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('birthday').value = '';
+            loadBirthdays();
+        }
+
+        async function deleteBirthday(index) {
+            if (!confirm('Delete this birthday?')) return;
+            await fetch(`/birthdays/${index}`, { method: 'DELETE' });
+            loadBirthdays();
+        }
+
+        loadBirthdays();
+    </script>
+</body>
+
+</html>
