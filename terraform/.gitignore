@@ -1,3 +1,4 @@
+.gitignore
 # Terraform state files
 *.tfstate
 *.tfstate.backup
