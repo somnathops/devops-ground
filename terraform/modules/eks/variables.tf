@@ -1,38 +1,18 @@
-variable "region" {
-    description = "AWS region"
-    type        = string
-    default     = "us-east-1"
-}
-
 variable "environment_name" {
-    description = "Environment name"
+    description = "The name of the environment (e.g., dev, staging, prod)"
     type        = string
+    default     = "dev" 
+    validation {
+      condition = contains(["dev", "staging", "prod"], var.environment_name)
+      error_message = "environment_name must be one of dev, staging, prod"
+    } 
 }
 
-variable "vpc_cidr" {
-    description = "VPC CIDR block"
+variable "region" {
+    description = "The AWS region to deploy the EKS cluster"
     type        = string
-}
-
-variable "num_azs" {
-    description = "Number of AZs"
-    type        = number
-}
-
-variable "single_nat_gateway" {
-    description = "Use single NAT gateway"
-    type        = bool
-}
-
-variable "enable_flow_logs" {
-    description = "Enable VPC flow logs"
-    type        = bool
-}
-
-variable "tags" {
-    description = "Tags to apply to all resources"
-    type        = map(string)
-    default     = {}
+    default     = "us-west-2"
+  
 }
 
 variable "cluster_name" {
@@ -73,6 +53,12 @@ variable "vpc_state_key" {
     type        = string
 }
 
+variable "tags" {
+    description = "A map of tags to assign to all resources"
+    type        = map(string)
+    default     = {}
+  
+}
 
 variable "kubernetes_version" {
     description = "Kubernetes version for EKS cluster"
